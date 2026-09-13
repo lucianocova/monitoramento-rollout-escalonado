@@ -14,6 +14,7 @@
 # Pacote utilizado para manipulação eficiente das bases de dados.
 library(data.table) 
 library(Kendall) 
+library(ggplot2)
  
 # %% 
 #############################################################################################################################################################################
