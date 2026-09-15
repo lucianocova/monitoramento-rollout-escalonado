@@ -329,7 +329,7 @@ base_carteiras$classe_beta_2 <- factor(
 # Essa etapa permite verificar se a população simulada apresenta as
 # características esperadas antes da expansão da base para o nível diário.
 
-par(mfrow = c(1, 1))
+par(mfrow = c(2, 2))
 
 
 # beta_1
@@ -1068,9 +1068,9 @@ table(
 
 # %% 
 
-########################################################
-# ACURÁCIA GLOBAL
-########################################################
+###############################################################################################################################################################################
+#                                                                                 ACURÁCIA GLOBAL                                                                             #
+###############################################################################################################################################################################
 
 # Calcula a proporção de carteiras em que a direção do impacto
 # foi identificada corretamente.
@@ -1084,9 +1084,9 @@ acuracia
 
 # %% 
 
-########################################################
-# PERCENTUAL DE ACERTO POR CLASSE DE BETA 2
-########################################################
+################################################################################################################################################################################
+#                                                                    PERCENTUAL DE ACERTO POR CLASSE DE BETA 2                                                                 #
+################################################################################################################################################################################
 
 tabela_acuracia <- tabela_regressoes[
   ,
@@ -1239,3 +1239,276 @@ testes_perfil[
 # Visualiza os resultados.
 
 testes_perfil
+
+###############################################################################################################################################################################
+
+# Dados da Carteira 5
+dados_carteira_5 <- base_mm[id_carteira == 5]
+
+# Momento da implantação
+t_tratamento <- unique(dados_carteira_5$d_inicio_tratamento)
+
+# Modelos
+modelo_pre_5 <- modelos_pre[id_carteira == 5]$modelo[[1]]
+modelo_pos_5 <- modelos_pos[id_carteira == 5]$modelo[[1]]
+
+# Gráfico da média móvel
+plot(
+  dados_carteira_5$t,
+  dados_carteira_5$Y_mm,
+  type = "l",
+  lwd = 1.5,
+  xlab = "Período (t)",
+  ylab = paste(
+    "Desembolso diário —",
+    nome_mm,
+    "móvel de",
+    JANELA_MM,
+    "dias"
+  ),
+  main = paste(
+    "Trajetória da",
+    tolower(nome_mm),
+    "móvel de",
+    JANELA_MM,
+    "dias — Carteira 5"
+  )
+)
+
+# Valores previstos pelo modelo pré
+t_pre <- dados_carteira_5[
+  t <= t_tratamento & periodo == "pre",
+  t
+]
+
+y_pre <- predict(
+  modelo_pre_5,
+  newdata = data.frame(t = t_pre)
+)
+
+lines(
+  t_pre,
+  y_pre,
+  col = "blue",
+  lwd = 2
+)
+
+# Valores previstos pelo modelo pós
+t_pos <- dados_carteira_5[
+  t >= t_tratamento & periodo == "pos",
+  t
+]
+
+y_pos <- predict(
+  modelo_pos_5,
+  newdata = data.frame(t = t_pos)
+)
+
+lines(
+  t_pos,
+  y_pos,
+  col = "red",
+  lwd = 2
+)
+
+# Linha da implantação
+abline(
+  v = t_tratamento,
+  col = "darkgray",
+  lty = 3,
+  lwd = 1.5
+)
+
+# Legenda
+legend(
+  "topleft",
+  legend = c(
+    "Média móvel",
+    "Regressão pré-implantação",
+    "Regressão pós-implantação",
+    "Implantação"
+  ),
+  col = c(
+    "black",
+    "blue",
+    "red",
+    "darkgray"
+  ),
+  lty = c(1, 1, 1, 3),
+  lwd = c(1.5, 2, 2, 1.5),
+  bty = "n"
+)
+
+
+
+
+# ============================================================
+# Configuração da página
+# ============================================================
+
+par(
+  mfrow = c(2, 2),
+  mar = c(4, 4, 3, 1),
+  oma = c(4.5, 0, 0, 0)
+)
+
+
+# ============================================================
+# Função para gerar o gráfico
+# ============================================================
+
+grafico_carteira <- function(id) {
+  
+  # Dados da carteira
+  dados <- base_mm[id_carteira == id]
+  
+  # Momento da implantação
+  t_tratamento <- unique(dados$d_inicio_tratamento)
+  
+  # Modelos pré e pós
+  modelo_pre <- modelos_pre[
+    id_carteira == id
+  ]$modelo[[1]]
+  
+  modelo_pos <- modelos_pos[
+    id_carteira == id
+  ]$modelo[[1]]
+  
+  # Classes
+  classe_b1 <- unique(dados$classe_beta_1)
+  classe_b2 <- unique(dados$classe_beta_2)
+  
+  # ----------------------------------------------------------
+  # Média móvel
+  # ----------------------------------------------------------
+  
+  plot(
+    dados$t,
+    dados$Y_mm,
+    type = "l",
+    lwd = 1.2,
+    col = "black",
+    xlab = "Período (t)",
+    ylab = "Desembolso líquido",
+    main = paste(
+      "Carteira", id,
+      "—", classe_b1, ",", classe_b2
+    )
+  )
+  
+  
+  # ----------------------------------------------------------
+  # Regressão pré-implantação
+  # ----------------------------------------------------------
+  
+  t_pre <- dados[
+    t <= t_tratamento & periodo == "pre",
+    t
+  ]
+  
+  y_pre <- predict(
+    modelo_pre,
+    newdata = data.frame(t = t_pre)
+  )
+  
+  lines(
+    t_pre,
+    y_pre,
+    col = "blue",
+    lwd = 2
+  )
+  
+  
+  # ----------------------------------------------------------
+  # Regressão pós-implantação
+  # ----------------------------------------------------------
+  
+  t_pos <- dados[
+    t >= t_tratamento & periodo == "pos",
+    t
+  ]
+  
+  y_pos <- predict(
+    modelo_pos,
+    newdata = data.frame(t = t_pos)
+  )
+  
+  lines(
+    t_pos,
+    y_pos,
+    col = "red",
+    lwd = 2
+  )
+  
+  
+  # ----------------------------------------------------------
+  # Momento da implantação
+  # ----------------------------------------------------------
+  
+  abline(
+    v = t_tratamento,
+    col = "darkgray",
+    lty = 3,
+    lwd = 1.5
+  )
+}
+
+
+# ============================================================
+# Gráficos
+# ============================================================
+
+grafico_carteira(5)
+
+grafico_carteira(85)
+
+grafico_carteira(13)
+
+grafico_carteira(34)
+
+
+# ============================================================
+# Legenda geral
+# ============================================================
+
+par(xpd = NA)
+
+legend(
+  "bottom",
+  inset = c(0, -0.18),
+  legend = c(
+    "Média móvel",
+    "Regressão pré-implantação",
+    "Regressão pós-implantação",
+    "Implantação"
+  ),
+  col = c(
+    "black",
+    "blue",
+    "red",
+    "darkgray"
+  ),
+  lty = c(
+    1,
+    1,
+    1,
+    3
+  ),
+  lwd = c(
+    1.2,
+    2,
+    2,
+    1.5
+  ),
+  horiz = TRUE,
+  bty = "n",
+  cex = 0.8
+)
+
+
+# Restaurar configuração padrão
+par(
+  mfrow = c(1, 1),
+  oma = c(0, 0, 0, 0),
+  xpd = FALSE
+)
